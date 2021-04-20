@@ -92,6 +92,14 @@ class Sprite(GameCanvasElement):
             self.x, 
             self.y,
             image=self.photo_image)
+        
+class KeyboardHandler:
+    def __init__(self, successor=None):
+        self.successor = successor
+
+    def handle(self, event):
+        if self.successor:
+            self.successor.handle(event)
 
 
 class GameApp(ttk.Frame): 
@@ -106,6 +114,8 @@ class GameApp(ttk.Frame):
 
         self.grid(sticky="news")
         self.create_canvas()
+        self.key_pressed_handler = KeyboardHandler()
+        self.key_released_handler = KeyboardHandler()
 
         self.elements = []
         self.init_game()
@@ -161,7 +171,7 @@ class GameApp(ttk.Frame):
         pass
 
     def on_key_pressed(self, event):
-        pass
+        self.key_pressed_handler.handle(event)
 
     def on_key_released(self, event):
-        pass
+        self.key_released_handler.handle(event)
