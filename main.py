@@ -4,7 +4,7 @@ from random import randint, random
 
 import tkinter as tk
 
-from gamelib import Sprite, GameApp, Text
+from gamelib import Sprite, GameApp, Text, KeyboardHandler
 
 from consts import *
 from elements import Ship, Bullet, Enemy
@@ -37,6 +37,15 @@ class SpaceGame(GameApp):
             (0.2, StarEnemyGenerationStrategy()),
             (1.0, EdgeEnemyGenerationStrategy())
         ]
+        self.init_key_handlers()
+
+    def init_key_handlers(self):
+        key_pressed_handler = ShipMovementKeyPressedHandler(self, self.ship)
+        key_pressed_handler = BombKeyPressedHandler(self, self.ship, key_pressed_handler)
+        self.key_pressed_handler = key_pressed_handler
+
+        key_released_handler = ShipMovementKeyReleasedHandler(self, self.ship)
+        self.key_released_handler = key_released_handler
 
     def add_enemy(self, enemy):
         self.enemies.append(enemy)
@@ -216,6 +225,39 @@ class EdgeEnemyGenerationStrategy(EnemyGenerationStrategy):
 
         enemy = Enemy(space_game, x, y, vx, vy)
         return [enemy]
+    
+class GameKeyboardHandler(KeyboardHandler):
+    def __init__(self, game_app, ship, successor=None):
+        super().__init__(successor)
+        self.game_app = game_app
+        self.ship = ship
+
+
+class BombKeyPressedHandler(GameKeyboardHandler):
+    def handle(self, event):
+        print('here')
+        if event.char.upper() == 'Z':
+            self.game_app.bomb()
+        else:
+            super().handle(event)
+
+
+class ShipMovementKeyPressedHandler(GameKeyboardHandler):
+    def handle(self, event):
+        if event.keysym == 'Left':
+            self.ship.start_turn('LEFT')
+        elif event.keysym == 'Right':
+            self.ship.start_turn('RIGHT')
+        elif event.char == ' ':
+            self.ship.fire()
+
+
+class ShipMovementKeyReleasedHandler(GameKeyboardHandler):
+    def handle(self, event):
+        if event.keysym == 'Left':
+            self.ship.stop_turn('LEFT')
+        elif event.keysym == 'Right':
+            self.ship.stop_turn('RIGHT')
 
 
 if __name__ == "__main__":
